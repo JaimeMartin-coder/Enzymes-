@@ -1,0 +1,971 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Enzyme Lab: Level Up</title>
+<style>
+:root{
+  --paper:#fbfaf6; --ink:#1d2b2e; --muted:#566669; --line:#cfd8d6; --grid:#e6ebe8;
+  --enz:#0d8587; --enz-d:#075c5e; --enz-l:#d9f0ef;
+  --sub:#e8801c; --gold:#f0b92c; --bad:#c23b3b; --bad-l:#fbe3e1; --good:#23803f; --good-l:#ddf3e3;
+  --warn-l:#fff3d1; --base:17px;
+}
+html.big{--base:21px}
+*{box-sizing:border-box}
+html{font-size:var(--base)}
+body{margin:0;color:var(--ink);background:var(--paper);
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:28px 28px;
+  font-family:"Avenir Next","Segoe UI","Trebuchet MS",system-ui,sans-serif;line-height:1.5}
+.wrap{max-width:900px;margin:0 auto;padding:0 16px 80px}
+header.top{padding:28px 0 8px}
+h1{font-size:2.2rem;line-height:1.1;margin:0 0 6px;color:var(--enz-d);letter-spacing:-.5px}
+h2{font-size:1.5rem;margin:0 0 4px;line-height:1.2}
+h3{font-size:1.05rem;margin:20px 0 6px}
+p{margin:.4em 0 .8em}
+.sub{color:var(--muted);margin:0 0 14px}
+.bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:14px 0}
+.bar input[type=text]{flex:1 1 200px;min-width:160px;font:inherit;padding:9px 12px;border:2px solid var(--line);border-radius:8px;background:#fff}
+button,select,textarea,input{font:inherit}
+.btn{border:2px solid var(--enz-d);background:var(--enz);color:#fff;border-radius:8px;padding:9px 16px;font-weight:700;cursor:pointer;min-height:44px}
+.btn:hover{background:var(--enz-d)}
+.btn.ghost{background:#fff;color:var(--enz-d)}
+.btn.ghost:hover{background:var(--enz-l)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+:focus-visible{outline:3px solid #1a5fd0;outline-offset:2px}
+.prog{flex:1 1 100%;display:flex;align-items:center;gap:10px;font-weight:600}
+.prog .track{flex:1;height:14px;background:#fff;border:2px solid var(--line);border-radius:99px;overflow:hidden}
+.prog .fill{height:100%;width:0;background:var(--enz);transition:width .4s}
+details.bank{background:#fff;border:2px solid var(--line);border-radius:10px;padding:10px 14px;margin:10px 0}
+details.bank summary{cursor:pointer;font-weight:700;color:var(--enz-d)}
+details.bank dl{margin:10px 0 0;display:grid;grid-template-columns:max-content 1fr;gap:6px 14px}
+details.bank dt{font-weight:700}
+details.bank dd{margin:0}
+section.part{background:#fff;border:2px solid var(--ink);border-radius:14px;padding:20px 20px 24px;margin:28px 0;box-shadow:6px 6px 0 var(--enz-l)}
+.tags{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 14px}
+.tag{font-size:.72rem;background:var(--enz-l);color:var(--enz-d);border-radius:99px;padding:2px 10px;font-weight:600}
+.goal{background:var(--warn-l);border-left:6px solid var(--gold);padding:10px 14px;border-radius:6px;margin:12px 0}
+.steps{margin:8px 0 14px;padding-left:1.3em}
+.steps li{margin:4px 0}
+.svgwrap{background:#fff;border:2px solid var(--line);border-radius:10px;padding:6px;margin:10px 0}
+.svgwrap svg{width:100%;height:auto;display:block}
+.stage{border:2px solid var(--ink);border-radius:12px;overflow:hidden;background:#e9f6fb}
+.stage canvas{display:block;width:100%}
+.controls{display:grid;gap:12px;margin:12px 0;padding:12px 14px;background:var(--paper);border:2px solid var(--line);border-radius:10px}
+.controls label{font-weight:700;display:block}
+.controls output{font-size:1.3rem;color:var(--enz-d);font-weight:800}
+input[type=range]{width:100%;height:36px;accent-color:var(--enz)}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin:10px 0}
+.stat{background:#fff;border:2px solid var(--line);border-radius:10px;padding:8px 10px}
+.stat b{display:block;font-size:1.45rem;line-height:1.2}
+.stat span{font-size:.8rem;color:var(--muted)}
+.banner{display:none;background:var(--bad-l);border:2px solid var(--bad);color:#6d1b1b;border-radius:8px;padding:8px 12px;margin:8px 0;font-weight:600}
+.banner.show{display:block}
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:.85rem;margin:8px 0;color:var(--muted)}
+.legend i{display:inline-block;width:14px;height:14px;border-radius:50%;vertical-align:-2px;margin-right:5px}
+.q{border-top:2px dashed var(--line);padding:14px 0}
+.q .qt{font-weight:700;margin:0 0 8px}
+.q .opts{display:grid;gap:8px}
+.opt{text-align:left;background:#fff;border:2px solid var(--line);border-radius:8px;padding:10px 12px;cursor:pointer;min-height:44px}
+.opt:hover:not(:disabled){border-color:var(--enz);background:var(--enz-l)}
+.opt.right{background:var(--good-l);border-color:var(--good)}
+.opt.wrong{background:var(--bad-l);border-color:var(--bad);text-decoration:line-through}
+.fb{margin:8px 0 0;font-weight:600;min-height:1.2em}
+.fb.ok{color:var(--good)} .fb.no{color:var(--bad)}
+.chal{display:inline-block;background:var(--gold);color:#4a3200;font-size:.75rem;font-weight:800;border-radius:6px;padding:1px 8px;margin-right:6px}
+.open label{font-weight:700;display:block;margin-bottom:6px}
+.open textarea{width:100%;min-height:96px;padding:10px;border:2px solid var(--line);border-radius:8px;background:#fff;resize:vertical}
+.frame{color:var(--muted);font-size:.9rem;margin:0 0 6px}
+.lab-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px;margin:12px 0}
+.lab-item{background:var(--paper);border:2px solid var(--line);border-radius:10px;padding:10px}
+.lab-item .mk{display:inline-flex;width:28px;height:28px;border-radius:50%;background:var(--enz-d);color:#fff;align-items:center;justify-content:center;font-weight:800;margin-right:8px}
+.lab-item select{width:100%;margin-top:8px;padding:9px;border:2px solid var(--line);border-radius:8px;background:#fff}
+.lab-item.right{border-color:var(--good);background:var(--good-l)}
+.lab-item.wrong{border-color:var(--bad);background:var(--bad-l)}
+.insight{background:var(--enz-l);border:2px solid var(--enz);border-radius:10px;padding:10px 14px;margin:14px 0}
+footer{margin-top:30px;color:var(--muted);font-size:.85rem}
+@media (max-width:560px){
+  h1{font-size:1.7rem}
+  section.part{padding:14px 12px 18px;box-shadow:4px 4px 0 var(--enz-l)}
+  details.bank dl{grid-template-columns:1fr}
+}
+@media print{
+  body{background:#fff}
+  .bar button,.controls,.stage,.btn,details.bank summary{display:none!important}
+  section.part{box-shadow:none;break-inside:avoid-page}
+}
+
+/* ===== arcade layer ===== */
+body{background:#150a35;background-image:radial-gradient(circle at 12% 0%,#3d1b8f 0,transparent 45%),radial-gradient(circle at 92% 28%,#7d1b6b 0,transparent 40%),radial-gradient(rgba(255,255,255,.07) 1.5px,transparent 1.5px);background-size:auto,auto,26px 26px;background-attachment:fixed,fixed,scroll}
+header.top{color:#fff}
+h1{font-size:2.7rem;color:#fff;font-weight:900;text-shadow:3px 3px 0 #ff4fd8;letter-spacing:-1px;font-family:"Arial Rounded MT Bold","Avenir Next","Trebuchet MS",system-ui,sans-serif}
+h2{font-size:1.6rem;font-weight:900;font-family:"Arial Rounded MT Bold","Avenir Next","Trebuchet MS",system-ui,sans-serif}
+.sub{color:#d8ccff}
+.hero{display:flex;gap:14px;align-items:center;margin:6px 0 4px}
+.enzo svg{width:110px;height:auto;display:block;animation:bob 2.4s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(-6px) rotate(-3deg)}}
+.bubble{background:#fff;color:#1d2b2e;border:3px solid #12062b;border-radius:16px;padding:12px 16px;position:relative;font-weight:700;box-shadow:5px 5px 0 #ff4fd8}
+.bubble:before{content:"";position:absolute;left:-14px;top:50%;margin-top:-9px;border:9px solid transparent;border-right:12px solid #12062b;border-left:0}
+.hud{position:sticky;top:8px;z-index:40;display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;background:#12062b;color:#fff;border:3px solid #ff4fd8;border-radius:14px;padding:8px 14px;margin:12px 0;box-shadow:0 6px 0 rgba(0,0,0,.3)}
+.hud .lv{font-weight:900;font-size:1.05rem;white-space:nowrap}
+.hud .xpw{flex:1 1 170px;min-width:140px}
+.xpbar{height:16px;background:#2a1760;border:2px solid #7c5cff;border-radius:99px;overflow:hidden}
+.xpbar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#ff4fd8,#ffe14d);transition:width .5s}
+.hud small{display:block;color:#cdbff5;font-size:.72rem;margin-top:2px}
+.hud .streak{font-weight:900;font-size:1.05rem;color:#ffb347;white-space:nowrap}
+.hud .cor{font-size:.85rem;color:#cdbff5;white-space:nowrap}
+.btn{border-bottom-width:5px;border-radius:12px;transition:transform .08s}
+.btn:active:not(:disabled){transform:translateY(3px);border-bottom-width:2px}
+.btn{background:#ff4fd8;border-color:#12062b;color:#12062b}
+.btn:hover{background:#ff7be3}
+.btn.ghost{background:#fff;color:#12062b}
+.btn.ghost:hover{background:#ffe9fb}
+section.part{border:3px solid #12062b;border-radius:18px;box-shadow:9px 9px 0 var(--sh,#ff6ec7)}
+#p1{--sh:#ff6ec7}#p2{--sh:#ff9f1c}#p3{--sh:#8b6cff}#p4{--sh:#2ee6c5}#done{--sh:#ffe14d}
+.goal{background:#fff3b0;border-left:8px solid #ff9f1c;border-radius:10px;font-weight:600}
+.tag{background:#efe7ff;color:#3b1d94}
+.pbadge{display:inline-block;font-size:.75rem;background:#e9e9ee;color:#6a6a78;border-radius:99px;padding:3px 12px;margin-left:8px;vertical-align:middle;font-weight:800}
+.pbadge.on{background:#ffe14d;color:#4a3200;animation:pop .5s}
+.opt{border-radius:12px;font-weight:600}
+.opt:hover:not(:disabled){border-color:#ff4fd8;background:#fff0fc}
+.opt.right{animation:pop .4s}
+.opt.wrong{animation:shake .35s}
+@keyframes pop{50%{transform:scale(1.05)}}
+@keyframes shake{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.chal{background:#ff4fd8;color:#fff;font-weight:900}
+.insight{background:#efe7ff;border-color:#8b6cff}
+.stat{border-radius:12px;border-color:#12062b}
+.stat b{font-family:"Arial Rounded MT Bold","Avenir Next",system-ui,sans-serif}
+.meter{height:24px;background:#fff;border:3px solid #12062b;border-radius:99px;overflow:hidden}
+.meter i{display:block;height:100%;width:0;background:linear-gradient(90deg,#2ee6c5,#ffe14d,#ff4fd8);transition:width .5s}
+.mlabel{display:flex;justify-content:space-between;font-size:.8rem;font-weight:700;color:var(--muted);margin:8px 0 2px}
+.banner{background:#ffe3ea;border-color:#ff3b6b;font-size:1.05rem}
+.stage{border:3px solid #12062b;border-radius:16px}
+.toast{position:fixed;left:50%;bottom:18px;transform:translate(-50%,140%);z-index:900;display:flex;gap:10px;align-items:center;max-width:min(560px,94vw);background:#12062b;color:#fff;border:3px solid #ffe14d;border-radius:16px;padding:8px 16px 8px 8px;font-weight:700;transition:transform .35s cubic-bezier(.3,1.5,.5,1);box-shadow:0 8px 0 rgba(0,0,0,.3)}
+.toast.show{transform:translate(-50%,0)}
+.toast.bad{border-color:#ff3b6b}
+.toast .enzo svg{width:54px;animation:none}
+#cf{position:fixed;left:0;top:0;width:100vw;height:100vh;pointer-events:none;z-index:999}
+.fl{position:fixed;z-index:1000;font-weight:900;font-size:1.3rem;color:#ffe14d;text-shadow:2px 2px 0 #12062b,-1px -1px 0 #12062b;pointer-events:none;animation:fl 1s ease-out forwards}
+@keyframes fl{to{transform:translateY(-60px);opacity:0}}
+.results{background:#12062b;color:#fff;border-radius:14px;padding:14px 16px;margin:10px 0}
+.results .big{font-size:1.8rem;font-weight:900}
+.results .stats .stat{color:#12062b}
+.bdg{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.bdg span{background:#ffe14d;color:#4a3200;border-radius:99px;padding:4px 12px;font-weight:800;font-size:.85rem}
+.bdg span.off{background:#2a1760;color:#9d8fd4}
+footer{color:#bfb2ee}
+@media (max-width:560px){h1{font-size:2.1rem}.enzo svg{width:80px}.hud{top:4px;padding:6px 10px}.hero{gap:10px}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+@media print{body{background:#fff!important}.hud,.toast,#cf,.hero,#showT{display:none!important}section.part{box-shadow:none;border-width:2px}}
+
+/* ===== sentence builders + boss ===== */
+.sent{border-top:2px dashed var(--line);padding:14px 0}
+.sent .lbl{font-weight:700;margin:0 0 8px}
+.sent .line{line-height:2.5;margin-bottom:8px}
+.sent select{font:inherit;font-weight:700;padding:6px 8px;border:2px solid #8b6cff;border-radius:10px;background:#f6f2ff;margin:0 3px;max-width:100%;min-height:40px}
+.sent select.right{border-color:var(--good);background:var(--good-l)}
+.sent select.wrong{border-color:var(--bad);background:var(--bad-l)}
+.sent select:disabled{opacity:1;color:var(--ink)}
+.boss{position:fixed;inset:0;z-index:1200;display:flex;align-items:center;justify-content:center;background:rgba(18,6,43,.82);padding:16px}
+.boss[hidden]{display:none}
+.boss-card{background:#fff;border:4px solid #12062b;border-radius:20px;box-shadow:10px 10px 0 #ff3b6b;max-width:480px;width:100%;padding:18px 20px 22px;text-align:center;animation:slam .45s cubic-bezier(.2,1.6,.4,1)}
+.boss-card svg{width:170px;height:auto;animation:rage .6s ease-in-out infinite}
+.boss-card h2{color:#c2233f;margin:4px 0 6px}
+.boss-card p{margin:.4em 0}
+.boss-card .tip{background:#fff3b0;border-radius:10px;padding:8px 12px;font-weight:600}
+@keyframes slam{from{transform:scale(.4) translateY(-80px);opacity:0}}
+@keyframes rage{25%{transform:translateX(-4px) rotate(-2deg)}75%{transform:translateX(4px) rotate(2deg)}}
+.recstat{font-weight:800;margin:10px 0 2px;font-size:1.05rem}
+.zone{display:inline-block;font-weight:700;margin-top:6px;padding:4px 10px;border-radius:8px}
+.zone.ok{background:var(--good-l);color:var(--good)}
+.zone.hot{background:var(--bad-l);color:var(--bad)}
+.timer{display:flex;align-items:center;gap:12px;margin:2px 0 4px}
+.tbar{flex:1;height:20px;background:#fff;border:3px solid #12062b;border-radius:99px;overflow:hidden}
+.tbar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#ff9f1c,#ffe14d);transition:width .12s linear}
+.timer.ready .tbar i{background:linear-gradient(90deg,#2ee6c5,#23c27a)}
+.timer span{font-weight:900;min-width:190px}
+.timer.ready span{color:var(--good)}
+@media (max-width:560px){.timer{flex-wrap:wrap}.timer span{min-width:0}}
+.recstat div{margin:3px 0}
+.recstat{font-weight:700}
+</style>
+</head>
+<body>
+<canvas id="cf"></canvas>
+<div class="toast" id="toast" role="status" aria-live="polite"><div class="enzo" aria-hidden="true"></div><span id="toastMsg"></span></div>
+<div class="boss" id="boss" role="dialog" aria-modal="true" aria-labelledby="bossT" hidden>
+  <div class="boss-card">
+    <div id="bossArt" aria-hidden="true"></div>
+    <h2 id="bossT">The Denaturator appears!</h2>
+    <p id="bossMsg"></p>
+    <p class="tip">Tip: look back at the picture or graph in this part, then read every answer before you click.</p>
+    <p><b>Get the next one right and you beat me for +25 bonus XP.</b></p>
+    <button class="btn" id="bossOk" type="button">I'll be careful 💪</button>
+  </div>
+</div>
+<div class="boss" id="tch" role="dialog" aria-modal="true" aria-labelledby="tchT" hidden>
+  <div class="boss-card" style="max-width:560px;text-align:left;max-height:90vh;overflow:auto;box-shadow:10px 10px 0 #2ee6c5">
+    <h2 id="tchT" style="color:#075c5e;text-align:center">Teacher check ✅</h2>
+    <div id="tchBody"></div>
+    <p style="text-align:center"><button class="btn" id="tchOk" type="button">Back to my lab</button></p>
+  </div>
+</div>
+<div class="wrap">
+
+<header class="top">
+  <div class="hero">
+    <div class="enzo" aria-hidden="true"></div>
+    <div class="bubble">Yo! I'm Enzo. Help me turn substrates into products. Earn XP, unlock badges, and do NOT get me cooked.</div>
+  </div>
+  <h1>Enzyme Lab: Level Up</h1>
+  <p class="sub">3 parts: meet the enzyme, test temperature, test pH. You build your own graphs, so choose your dots carefully. Then answer questions about YOUR data.</p>
+  <div class="bar">
+    <input type="text" id="nm" placeholder="Type your name" aria-label="Your name" autocomplete="off">
+    <button class="btn ghost" id="sz" type="button" aria-pressed="false">Bigger text</button>
+    <button class="btn ghost" id="snd" type="button" aria-pressed="true">🔊 Sound on</button>
+  </div>
+  <div class="hud" aria-live="off">
+    <div class="lv"><span id="lvE">🐀</span> <span id="lvN">Lab Rat</span></div>
+    <div class="xpw"><div class="xpbar"><i id="xpf"></i></div><small id="xpt">0 XP</small></div>
+    <div class="streak" id="st" title="Correct answers in a row">🔥 0</div>
+    <div class="cor" id="pt">0 / 0 correct</div>
+  </div>
+  <details class="bank">
+    <summary>Word bank (open this any time)</summary>
+    <dl>
+      <dt>Enzyme</dt><dd>A protein that speeds up a chemical reaction in a living thing.</dd>
+      <dt>Substrate</dt><dd>The molecule an enzyme works on.</dd>
+      <dt>Active site</dt><dd>The pocket on the enzyme where the substrate fits.</dd>
+      <dt>Enzyme-substrate complex</dt><dd>The enzyme and substrate stuck together for a moment.</dd>
+      <dt>Products</dt><dd>What the substrate turns into after the reaction.</dd>
+      <dt>Denature</dt><dd>When an enzyme changes shape and stops working. This cannot be undone.</dd>
+      <dt>Optimum</dt><dd>The best temperature or pH, where the enzyme works fastest.</dd>
+      <dt>Rate</dt><dd>How fast something happens. Here: how many products are made in 10 seconds.</dd>
+      <dt>Catalyst</dt><dd>Something that speeds up a reaction and is not used up.</dd>
+    </dl>
+  </details>
+</header>
+
+<!-- PART 1 -->
+<section class="part" id="p1">
+  <h2>Part 1: Meet Enzo, the main character <span class="pbadge" id="pb1">🔒 Badge</span></h2>
+  <div class="tags">
+    <span class="tag">DCI: LS1.A Structure and Function</span>
+    <span class="tag">CCC: Structure and Function</span>
+    <span class="tag">SEP: Developing and Using Models</span>
+    <span class="tag">HS-LS1-1</span>
+  </div>
+  <div class="goal"><b>Mission:</b> Name the parts of an enzyme reaction and explain why an enzyme only works on one kind of substrate.</div>
+  <p>Here is Enzo's reaction in 3 moments: before, during, after. Match each letter to the right term. Every correct label earns XP.</p>
+  <div class="svgwrap" id="diagram" role="img" aria-label="Three panels. Before: an enzyme with an empty pocket and a substrate above it. During: the substrate sitting in the pocket. After: the enzyme with two products floating away."></div>
+  <div class="lab-grid" id="labels"></div>
+  <div class="row"><button class="btn" id="chkLab" type="button">✅ Check my labels</button><span id="labFb" class="fb" aria-live="polite"></span></div>
+
+  <h3>Quiz time ⚡</h3>
+  <div id="qs1"></div>
+  <div class="sx" id="sx_o1"></div>
+</section>
+
+<!-- PART 2 -->
+<section class="part" id="p2">
+  <h2>Part 2: Temp check 🌡️ Don't get Enzo cooked <span class="pbadge" id="pb2">🔒 Badge</span></h2>
+  <div class="tags">
+    <span class="tag">DCI: LS1.A Structure and Function</span>
+    <span class="tag">CCC: Cause and Effect</span>
+    <span class="tag">CCC: Patterns</span>
+    <span class="tag">SEP: Analyzing and Interpreting Data</span>
+  </div>
+  <div class="goal"><b>Mission:</b> Find the temperature where this enzyme works best, and cook it on purpose to see what happens when it gets too hot.</div>
+  <div class="sx" id="sx_pr2"></div>
+  <h3>How to play</h3>
+  <ol class="steps">
+    <li>Slide the temperature to a spot you want to test. Watch the <b>timer</b>. When it turns green, press <b>Record dot</b>. Each dot needs a <b>different</b> temperature.</li>
+    <li><b>Must do:</b> cook the enzyme. Record 1 dot at a HIGH temperature where the enzymes turn gray (denature) 💀.</li>
+    <li><b>Your choice:</b> record 4 more dots at temperatures where the enzymes still work. Spread them out so you can see the whole shape of the graph.</li>
+    <li>If enzymes turn gray (RIP 💀), press <b>Fresh enzymes</b>. The slider resets to a safe 25 °C. Wait for the timer, then keep going.</li>
+    <li>You only get ONE graph, so choose wisely. When all 5 dots are done, press <b>Draw line of best fit</b> and answer the 2 questions about <b>your</b> graph.</li>
+  </ol>
+  <div class="stage"><canvas id="cv2" aria-label="Enzyme simulation: temperature"></canvas></div>
+  <div class="legend"><span><i style="background:#0d8587"></i>Working enzyme</span><span><i style="background:#8a8f98"></i>Denatured enzyme</span><span><i style="background:#e8801c"></i>Substrate</span><span><i style="background:#f0b92c"></i>Product</span></div>
+  <div class="controls">
+    <div><label for="tmp">Temperature: <output id="tmpO">25 °C</output></label>
+    <input type="range" id="tmp" min="0" max="70" step="1" value="25"><div class="zone ok" id="zn2"></div></div>
+    <div class="timer" id="tm2"><div class="tbar"><i id="tf2"></i></div><span id="tt2"></span></div>
+    <div class="row"><button class="btn" id="rec2" type="button">📍 Record dot</button><button class="btn" id="fit2" type="button" disabled>📈 Draw line of best fit</button><button class="btn ghost" id="new2" type="button">🔄 Fresh enzymes</button></div>
+  </div>
+  <div class="recstat" id="st2" aria-live="polite"></div><p class="fb" id="msg2" aria-live="polite"></p>
+  <div class="banner" id="ban2">RIP 💀 Those enzymes are permanently denatured (cooked). Cooling the water will not revive them. Press Fresh enzymes to respawn.</div>
+  <div class="stats">
+    <div class="stat"><b id="a2">8</b><span>Working enzymes</span></div>
+    <div class="stat"><b id="d2">0</b><span>Denatured enzymes</span></div>
+    <div class="stat"><b id="r2">...</b><span>Rate (products per 10 s)</span></div>
+  </div>
+  <div class="mlabel"><span>🐌 slow</span><span>Speed meter</span><span>fast 🚀</span></div><div class="meter"><i id="m2"></i></div>
+  <h3>Your data</h3>
+  <div class="svgwrap"><svg id="ch2" role="img" aria-label="Your temperature data graph"></svg></div>
+  <h3>Questions about YOUR graph</h3>
+  <div id="own2"></div>
+
+  <h3>Now compare: a provided graph</h3>
+  <p>Real scientist data time 📊 Scientists measured two different enzymes. One is from a human. One is from bacteria that live in hot springs.</p>
+  <div class="svgwrap"><svg id="ref2" role="img" aria-label="Reaction rate versus temperature for a human enzyme peaking near 37 degrees and a hot spring bacteria enzyme peaking near 70 degrees"></svg></div>
+  <div id="qs2"></div>
+  <div class="sx" id="sx_o2"></div>
+</section>
+
+<!-- PART 3 -->
+<section class="part" id="p3">
+  <h2>Part 3: pH vibe check 🧪 <span class="pbadge" id="pb3">🔒 Badge</span></h2>
+  <div class="tags">
+    <span class="tag">DCI: LS1.A Structure and Function</span>
+    <span class="tag">CCC: Stability and Change</span>
+    <span class="tag">CCC: Cause and Effect</span>
+    <span class="tag">SEP: Planning and Carrying Out Investigations</span>
+  </div>
+  <div class="goal"><b>Mission:</b> Find the best pH for your enzyme, and denature it on BOTH sides: a pH that is too low and a pH that is too high.</div>
+  <p>pH tells you how acidic something is. Low numbers are acids (like stomach acid). 7 is neutral (like water). High numbers are bases.</p>
+  <div class="sx" id="sx_pr3"></div>
+  <h3>How to play</h3>
+  <ol class="steps">
+    <li>Pick an enzyme, then slide the pH to a spot you want to test. Watch the <b>timer</b>. When it turns green, press <b>Record dot</b>. Each dot needs a <b>different</b> pH.</li>
+    <li><b>Must do (2 dots):</b> denature the enzyme at a pH that is <b>too low</b> AND at a pH that is <b>too high</b> 💀. The enzymes turn gray when they are denatured.</li>
+    <li><b>Your choice:</b> record 4 more dots at pH values where the enzymes still work. Spread them out so you can find the peak.</li>
+    <li>If enzymes turn gray (RIP 💀), press <b>Fresh enzymes</b>. The slider resets to a safe pH 5. Wait for the timer, then keep going.</li>
+    <li>You only get ONE graph, so choose wisely. When all 6 dots are done, press <b>Draw line of best fit</b> and answer the 2 questions about <b>your</b> graph.</li>
+  </ol>
+  <div class="stage" style="margin-top:12px"><canvas id="cv3" aria-label="Enzyme simulation: pH"></canvas></div>
+  <div class="legend"><span><i style="background:#0d8587"></i>Working enzyme (paler = slower)</span><span><i style="background:#8a8f98"></i>Denatured enzyme</span><span><i style="background:#e8801c"></i>Substrate</span><span><i style="background:#f0b92c"></i>Product</span></div>
+  <div class="controls">
+    <div><label for="enzSel">Pick an enzyme</label>
+    <select id="enzSel" style="width:100%;padding:10px;border:2px solid var(--line);border-radius:8px;background:#fff">
+      <option value="amy">Amylase (made in the mouth, breaks down starch)</option>
+      <option value="try">Trypsin (made in the small intestine, breaks down protein)</option>
+    </select><p class="frame" id="lockNote" style="margin:6px 0 0">Choose carefully: your enzyme locks in when you record your first dot.</p></div>
+    <div><label for="ph">pH: <output id="phO">5</output></label>
+    <input type="range" id="ph" min="0" max="14" step="0.5" value="5"><div class="zone ok" id="zn3"></div></div>
+    <div class="timer" id="tm3"><div class="tbar"><i id="tf3"></i></div><span id="tt3"></span></div>
+    <div class="row"><button class="btn" id="rec3" type="button">📍 Record dot</button><button class="btn" id="fit3" type="button" disabled>📈 Draw line of best fit</button><button class="btn ghost" id="new3" type="button">🔄 Fresh enzymes</button></div>
+  </div>
+  <div class="recstat" id="st3" aria-live="polite"></div><p class="fb" id="msg3" aria-live="polite"></p>
+  <div class="banner" id="ban3">RIP 💀 Those enzymes are permanently denatured. Changing the pH back will not revive them. Press Fresh enzymes to respawn.</div>
+  <div class="stats">
+    <div class="stat"><b id="a3">8</b><span>Working enzymes</span></div>
+    <div class="stat"><b id="d3">0</b><span>Denatured enzymes</span></div>
+    <div class="stat"><b id="r3">...</b><span>Rate (products per 10 s)</span></div>
+  </div>
+  <div class="mlabel"><span>🐌 slow</span><span>Speed meter</span><span>fast 🚀</span></div><div class="meter"><i id="m3"></i></div>
+  <h3>Your data</h3>
+  
+  <div class="svgwrap"><svg id="ch3" role="img" aria-label="Your pH data graph"></svg></div>
+  <h3>Questions about YOUR graph</h3>
+  <div id="own3"></div>
+
+  <h3>Now compare: a provided graph</h3>
+  <div class="svgwrap"><svg id="ref3" role="img" aria-label="Reaction rate versus pH for pepsin peaking at pH 2, amylase peaking at pH 7, and trypsin peaking at pH 8"></svg></div>
+  <div id="qs3"></div>
+  <div class="sx" id="sx_o3"></div>
+</section>
+
+<section class="part" id="done">
+  <h2>Final boss: wrap-up 🏆</h2>
+  <div class="results"><div class="big" id="resLv">🐀 Lab Rat</div>
+    <div class="stats"><div class="stat"><b id="resXp">0</b><span>Total XP</span></div><div class="stat"><b id="resAcc">0 / 0</b><span>Questions correct</span></div><div class="stat"><b id="resSt">0</b><span>Best streak</span></div></div>
+    <div class="bdg" id="resBd"></div></div>
+  <div class="sx" id="sx_o5"></div>
+  <div class="row" style="margin-top:14px">
+    <button class="btn" id="showT" type="button">👩‍🏫 Show teacher</button>
+    <span class="fb">All done? Press this and show your teacher your screen.</span>
+  </div>
+</section>
+
+<footer>Enzyme Lab: Level Up. Everything runs in your browser. Nothing you type is sent anywhere.</footer>
+</div>
+
+<script>
+(function(){
+"use strict";
+var $=function(id){return document.getElementById(id)};
+function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t}return a}
+function clamp(v,a,b){return Math.max(a,Math.min(b,v))}
+function pick(a){return a[Math.floor(Math.random()*a.length)]}
+
+/* ---------- mascot ---------- */
+function mascot(){return '<svg viewBox="0 0 116 100" xmlns="http://www.w3.org/2000/svg"><path d="M45,52 L74.3,31.1 A36,36 0 1 0 74.3,72.9 Z" fill="#0d8587" stroke="#075c5e" stroke-width="4" stroke-linejoin="round"/><circle cx="34" cy="40" r="8.5" fill="#fff" stroke="#075c5e" stroke-width="2"/><circle cx="55" cy="33" r="8.5" fill="#fff" stroke="#075c5e" stroke-width="2"/><circle cx="37" cy="42" r="3.6" fill="#0b2a2b"/><circle cx="58" cy="35" r="3.6" fill="#0b2a2b"/><line x1="92" y1="52" x2="106" y2="52" stroke="#8a4a0a" stroke-width="5"/><circle cx="91" cy="52" r="9" fill="#e8801c" stroke="#8a4a0a" stroke-width="2"/><circle cx="106" cy="52" r="9" fill="#f0b92c" stroke="#8a4a0a" stroke-width="2"/></svg>'}
+document.querySelectorAll(".enzo").forEach(function(n){n.innerHTML=mascot()});
+
+/* ---------- sound ---------- */
+var snd=true,ac=null,lastDie=0;
+function tone(f,d,t,v,when){
+  if(!snd)return;
+  try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();if(ac.state==="suspended")ac.resume();
+    var o=ac.createOscillator(),g=ac.createGain(),t0=ac.currentTime+(when||0);
+    o.type=t||"sine";o.frequency.setValueAtTime(f,t0);g.gain.setValueAtTime(0.0001,t0);
+    g.gain.exponentialRampToValueAtTime(v||0.12,t0+0.01);g.gain.exponentialRampToValueAtTime(0.0001,t0+d);
+    o.connect(g);g.connect(ac.destination);o.start(t0);o.stop(t0+d+0.03);
+  }catch(e){}
+}
+var sfx={
+  right:function(){tone(523,.12,"triangle",.12);tone(659,.12,"triangle",.12,.09);tone(784,.22,"triangle",.12,.18)},
+  wrong:function(){tone(170,.28,"sawtooth",.07)},
+  blip:function(){tone(880,.08,"square",.04)},
+  die:function(){var n=Date.now();if(n-lastDie<300)return;lastDie=n;tone(220,.35,"sawtooth",.06);tone(140,.4,"sawtooth",.06,.12)},
+  level:function(){[523,659,784,1047].forEach(function(f,i){tone(f,.2,"triangle",.14,i*.1)})}
+};
+
+/* ---------- confetti, toast, float text ---------- */
+var cf=$("cf"),cx=cf.getContext("2d"),parts=[],cfOn=false;
+function cfSize(){cf.width=window.innerWidth;cf.height=window.innerHeight}
+window.addEventListener("resize",cfSize);cfSize();
+function confetti(x,y,n){
+  if(window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches)return;
+  var cols=["#ff4fd8","#ffe14d","#2ee6c5","#8b6cff","#ff9f1c","#ffffff"];
+  for(var i=0;i<n;i++){var a=Math.random()*6.28,sp=3+Math.random()*8;parts.push({x:x,y:y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp-5,r:3+Math.random()*4,c:cols[i%cols.length],l:60+Math.random()*50,rot:Math.random()*6})}
+  if(!cfOn){cfOn=true;requestAnimationFrame(cfLoop)}
+}
+function cfLoop(){
+  cx.clearRect(0,0,cf.width,cf.height);
+  parts.forEach(function(p){p.x+=p.vx;p.y+=p.vy;p.vy+=0.25;p.vx*=0.99;p.l--;p.rot+=0.2;cx.save();cx.translate(p.x,p.y);cx.rotate(p.rot);cx.fillStyle=p.c;cx.globalAlpha=Math.min(1,p.l/30);cx.fillRect(-p.r,-p.r/2,p.r*2,p.r);cx.restore()});
+  parts=parts.filter(function(p){return p.l>0});
+  if(parts.length)requestAnimationFrame(cfLoop);else{cfOn=false;cx.clearRect(0,0,cf.width,cf.height)}
+}
+var tt;
+function toast(msg,kind){var t=$("toast");$("toastMsg").textContent=msg;t.className="toast show "+(kind||"");clearTimeout(tt);tt=setTimeout(function(){t.className="toast"},4600)}
+function floatText(el,txt){
+  var r=el.getBoundingClientRect(),n=document.createElement("div");n.className="fl";n.textContent=txt;
+  n.style.left=(r.left+r.width/2-30)+"px";n.style.top=(r.top-4)+"px";document.body.appendChild(n);setTimeout(function(){n.remove()},1000);
+}
+function burstAt(el,n){var r=el.getBoundingClientRect();confetti(r.left+r.width/2,r.top+r.height/2,n)}
+
+/* ---------- XP, levels, badges ---------- */
+var total=0,got=0,xp=0,streak=0,best=0,need={},done={},earned={},recc={p2:0,p3:0};
+var LV=[{x:0,n:"Lab Rat",e:"🐀"},{x:300,n:"Enzyme Rookie",e:"🧬"},{x:800,n:"Protein Pro",e:"🧪"},{x:1400,n:"Active Site Legend",e:"⚡"},{x:2000,n:"Enzyme GOAT",e:"🐐"}];
+var BADGES={p1:["🏷️","Label Master"],p2:["🌡️","Temp Check Champ"],p3:["🧪","pH Vibe Master"]};
+function lvl(){var l=LV[0];LV.forEach(function(v){if(xp>=v.x)l=v});return l}
+function reg(k){total++;need[k]=(need[k]||0)+1}
+function updProg(){
+  var l=lvl(),ni=null;LV.forEach(function(v){if(v.x>xp&&ni===null)ni=v});
+  var pc=ni?(xp-l.x)/(ni.x-l.x)*100:100;
+  $("pt").textContent=got+" / "+total+" correct";$("lvE").textContent=l.e;$("lvN").textContent=l.n;
+  $("xpf").style.width=pc+"%";$("xpt").textContent=xp+" XP"+(ni?", "+(ni.x-xp)+" to "+ni.n:", max level");
+  $("st").textContent="🔥 "+streak;
+  $("resLv").textContent=l.e+" "+l.n;$("resXp").textContent=xp;$("resAcc").textContent=got+" / "+total;$("resSt").textContent=best;
+  $("resBd").innerHTML=Object.keys(BADGES).map(function(k){return '<span class="'+(earned[k]?"":"off")+'">'+(earned[k]?BADGES[k][0]+" "+BADGES[k][1]:"🔒 "+BADGES[k][1])+'</span>'}).join("");
+}
+function addXP(n,el){
+  var b=lvl().n;xp+=n;updProg();if(el)floatText(el,"+"+n+" XP");
+  if(lvl().n!==b){toast("LEVEL UP! You are now "+lvl().e+" "+lvl().n,"");sfx.level();confetti(window.innerWidth/2,window.innerHeight*0.3,130)}
+}
+function checkBadge(k){
+  if(!BADGES[k])return;
+  if(!earned[k]&&done[k]>=need[k]){
+    earned[k]=1;var chip=$("pb"+k.slice(1));chip.className="pbadge on";chip.textContent=BADGES[k][0]+" "+BADGES[k][1];
+    updProg();toast("Badge unlocked: "+BADGES[k][0]+" "+BADGES[k][1]+"!","");sfx.level();confetti(window.innerWidth/2,window.innerHeight*0.35,150);
+  }
+}
+function credit(k,el,pts){wrongRun=0;if(bossActive){bossActive=false;pts+=25;toast("You beat the Denaturator 👊 +25 bonus XP","")}got++;done[k]=(done[k]||0)+1;addXP(pts,el);checkBadge(k)}
+function recXP(k,el){recc[k]++;if(recc[k]<=6)addXP(15,el);sfx.blip()}
+var wrongRun=0,bossActive=false;
+function bossSVG(){
+  var pts=[],i,n=16;for(i=0;i<n*2;i++){var a=i/(n*2)*6.2832,r=i%2?64:86;pts.push((100+Math.cos(a)*r).toFixed(1)+","+(104+Math.sin(a)*r).toFixed(1))}
+  return '<svg viewBox="0 0 200 208" xmlns="http://www.w3.org/2000/svg"><polygon points="'+pts.join(" ")+'" fill="#6a5a9c" stroke="#12062b" stroke-width="5" stroke-linejoin="round"/>'
+   +'<ellipse cx="74" cy="96" rx="17" ry="15" fill="#fff" stroke="#12062b" stroke-width="3"/><ellipse cx="126" cy="96" rx="17" ry="15" fill="#fff" stroke="#12062b" stroke-width="3"/>'
+   +'<circle cx="78" cy="100" r="7" fill="#c2233f"/><circle cx="122" cy="100" r="7" fill="#c2233f"/>'
+   +'<line x1="50" y1="68" x2="92" y2="86" stroke="#12062b" stroke-width="8" stroke-linecap="round"/><line x1="150" y1="68" x2="108" y2="86" stroke="#12062b" stroke-width="8" stroke-linecap="round"/>'
+   +'<path d="M62,136 Q100,178 138,136 Q100,146 62,136Z" fill="#2b0a3d" stroke="#12062b" stroke-width="3"/><path d="M76,141 L83,157 L90,144Z M110,144 L117,157 L124,141Z" fill="#fff"/></svg>';
+}
+var BOSSMSG=["WHOA. Three wrong in a row? Slow down. Guessing gets you cooked.","I am the Denaturator. I show up when answers get rushed. Read the whole question first.","Careful! Rushing is how enzymes (and grades) get denatured."];
+function showBoss(){
+  var b=$("boss");if(!b.hidden)return;
+  $("bossArt").innerHTML=bossSVG();$("bossMsg").textContent=pick(BOSSMSG);
+  b.hidden=false;bossActive=true;tone(110,.5,"sawtooth",.1);tone(82,.6,"sawtooth",.1,.15);$("bossOk").focus();
+}
+function hideBoss(){$("boss").hidden=true}
+$("bossOk").addEventListener("click",hideBoss);
+document.addEventListener("keydown",function(e){if(e.key==="Escape")hideBoss()});
+function wrongHit(){streak=0;wrongRun++;updProg();if(wrongRun>=3){wrongRun=0;showBoss()}}
+var RIGHT=["W.","Locked in.","Big brain.","Easy money.","No cap, that is right.","Let him cook."];
+var WRONG=["Not it.","Nah, close but no.","Plot twist: that is wrong.","Oof. Run it back."];
+
+/* ---------- multiple choice ---------- */
+function renderMC(el,key,items,pre){
+  items.forEach(function(it,n){
+    if(!pre)reg(key);
+    var d=document.createElement("div");d.className="q";
+    var p=document.createElement("p");p.className="qt";
+    p.innerHTML=(it.ch?'<span class="chal">Boss round 👹</span>':'')+(n+1)+". "+it.q;
+    d.appendChild(p);
+    var box=document.createElement("div");box.className="opts";
+    var fb=document.createElement("p");fb.className="fb";fb.setAttribute("aria-live","polite");
+    var order=shuffle(it.o.map(function(t,i){return{t:t,i:i}}));
+    var tries=0;
+    order.forEach(function(o){
+      var b=document.createElement("button");b.type="button";b.className="opt";b.textContent=o.t;
+      b.addEventListener("click",function(){
+        tries++;
+        if(o.i===0){
+          var base=it.ch?150:100,pts=tries===1?base:(tries===2?Math.round(base/2):Math.round(base/4));
+          if(tries===1){streak++;best=Math.max(best,streak);pts+=10*Math.min(streak-1,5)}
+          b.classList.add("right");fb.className="fb ok";
+          fb.textContent=(it.ch?"Boss defeated 👹 ":pick(RIGHT)+" ")+"+"+pts+" XP. "+it.why;
+          box.querySelectorAll("button").forEach(function(x){x.disabled=true});
+          sfx.right();burstAt(b,it.ch?60:26);credit(key,b,pts);
+        }else{
+          streak=0;updProg();
+          b.classList.add("wrong");b.disabled=true;fb.className="fb no";sfx.wrong();
+          fb.textContent=pick(WRONG)+" Look back at the picture or graph and try another answer.";wrongHit();
+        }
+      });
+      box.appendChild(b);
+    });
+    d.appendChild(box);d.appendChild(fb);el.appendChild(d);
+    d.setAttribute("data-qtext",it.q.replace(/<[^>]+>/g,""));
+  });
+  updProg();
+}
+
+/* ---------- Part 1 diagram ---------- */
+(function(){
+  var enz=function(x){return '<path d="M'+(x+20)+',200 C'+x+',130 '+(x+30)+',100 '+(x+70)+',100 L'+(x+95)+',100 C'+(x+95)+',140 '+(x+155)+',140 '+(x+155)+',100 L'+(x+180)+',100 C'+(x+220)+',100 '+(x+240)+',140 '+(x+220)+',200 C'+(x+170)+',245 '+(x+70)+',245 '+(x+20)+',200 Z" fill="#0d8587" stroke="#075c5e" stroke-width="3"/>'};
+  var sub=function(x,y){return '<line x1="'+(x-15)+'" y1="'+y+'" x2="'+(x+15)+'" y2="'+y+'" stroke="#8a4a0a" stroke-width="5"/><circle cx="'+(x-15)+'" cy="'+y+'" r="16" fill="#e8801c" stroke="#8a4a0a" stroke-width="2"/><circle cx="'+(x+15)+'" cy="'+y+'" r="16" fill="#f0b92c" stroke="#8a4a0a" stroke-width="2"/>'};
+  var mk=function(x,y,l){return '<circle cx="'+x+'" cy="'+y+'" r="15" fill="#fff" stroke="#1d2b2e" stroke-width="2.5"/><text x="'+x+'" y="'+(y+6)+'" text-anchor="middle" font-size="18" font-weight="800" fill="#1d2b2e">'+l+'</text>'};
+  var s='';
+  s+=enz(0)+sub(125,50)+mk(130,205,'A')+mk(125,112,'B')+mk(125,14,'C')+'<text x="130" y="282" text-anchor="middle" font-size="17" font-weight="700" fill="#566669">Before</text>';
+  s+=enz(260)+sub(385,122)+'<ellipse cx="385" cy="118" rx="52" ry="34" fill="none" stroke="#1d2b2e" stroke-width="3" stroke-dasharray="7 5"/>'+mk(385,62,'D')+'<text x="390" y="282" text-anchor="middle" font-size="17" font-weight="700" fill="#566669">During</text>';
+  s+=enz(520)+'<line x1="610" y1="70" x2="640" y2="70" stroke="none"/><circle cx="615" cy="55" r="16" fill="#e8801c" stroke="#8a4a0a" stroke-width="2"/><circle cx="705" cy="45" r="16" fill="#f0b92c" stroke="#8a4a0a" stroke-width="2"/>'+mk(660,20,'E')+'<text x="650" y="282" text-anchor="middle" font-size="17" font-weight="700" fill="#566669">After</text>';
+  $("diagram").innerHTML='<svg viewBox="0 0 780 295" xmlns="http://www.w3.org/2000/svg" font-family="Avenir Next,Segoe UI,sans-serif">'+s+'</svg>';
+  var terms=["Enzyme","Active site","Substrate","Enzyme-substrate complex","Products"];
+  var ans={A:"Enzyme",B:"Active site",C:"Substrate",D:"Enzyme-substrate complex",E:"Products"};
+  var g=$("labels");
+  Object.keys(ans).forEach(function(k){
+    var d=document.createElement("div");d.className="lab-item";d.id="lab"+k;
+    var opts='<option value="">Choose a term...</option>'+shuffle(terms).map(function(t){return'<option>'+t+'</option>'}).join("");
+    d.innerHTML='<span class="mk">'+k+'</span><b>Letter '+k+' is the...</b><select aria-label="Term for letter '+k+'">'+opts+'</select>';
+    g.appendChild(d);
+  });
+  for(var z=0;z<5;z++)reg("p1");updProg();
+  var awarded={};
+  $("chkLab").addEventListener("click",function(){
+    var c=0;
+    Object.keys(ans).forEach(function(k){
+      var d=$("lab"+k),v=d.querySelector("select").value;
+      d.classList.remove("right","wrong");
+      if(v===ans[k]){d.classList.add("right");c++;if(!awarded[k]){awarded[k]=1;credit("p1",d,40)}}
+      else if(v){d.classList.add("wrong")}
+    });
+    updProg();
+    var f=$("labFb");
+    if(c===5){f.className="fb ok";f.textContent="All 5 locked in. Enzo is proud 🧬";sfx.right();burstAt($("chkLab"),50)}
+    else{f.className="fb no";f.textContent=c+" of 5 correct. Fix the red ones. Hint: the active site is part of the enzyme.";sfx.wrong();if(document.querySelector("#labels .wrong"))wrongHit()}
+  });
+})();
+
+renderMC($("qs1"),"p1",[
+ {q:"What is the active site?",o:["The pocket on the enzyme where the substrate fits","The place where the enzyme is made","Another word for the product","The outside coating that protects the enzyme"],why:"The substrate binds in the active site, like a key in a lock."},
+ {q:"Why does one enzyme usually work on only one kind of substrate?",o:["The shape of the active site matches only that substrate","The substrate is always bigger than the enzyme","Enzymes can only touch one molecule in their life","The enzyme chooses the color it likes"],why:"Structure determines function: only a matching shape fits."},
+ {q:"What happens to the enzyme at the end of the reaction?",o:["It is unchanged and can be used again","It turns into the product","It is used up and disappears","It becomes a new substrate"],why:"Enzymes are catalysts. They speed things up without being used up."},
+ {q:"Enzymes are made of which type of macromolecule?",o:["Proteins","Carbohydrates","Lipids","Sugars"],why:"Enzymes are proteins. Their folded shape makes the active site."},
+ {q:"The enzyme <b>lactase</b> breaks down lactose (milk sugar) but cannot break down starch. What is the best explanation?",o:["Starch does not fit lactase's active site","Starch is too small to be seen","Lactase is only active at night","Starch has no energy"],why:"Lactase's active site matches lactose only.",ch:true}
+]);
+
+/* ---------- charts ---------- */
+function chart(svg,o){
+  var W=600,H=340,m={l:62,r:18,t:16,b:56},pw=W-m.l-m.r,ph=H-m.t-m.b;
+  var X=function(v){return m.l+(v-o.x0)/(o.x1-o.x0)*pw},Y=function(v){return m.t+ph-(v-o.y0)/(o.y1-o.y0)*ph};
+  var s='',i,v;
+  for(v=o.y0;v<=o.y1+1e-9;v+=o.ys){s+='<line x1="'+m.l+'" x2="'+(W-m.r)+'" y1="'+Y(v)+'" y2="'+Y(v)+'" stroke="#dfe6e3"/><text x="'+(m.l-8)+'" y="'+(Y(v)+5)+'" text-anchor="end" font-size="14" fill="#566669">'+v+'</text>'}
+  for(v=o.x0;v<=o.x1+1e-9;v+=o.xs){s+='<line y1="'+m.t+'" y2="'+(H-m.b)+'" x1="'+X(v)+'" x2="'+X(v)+'" stroke="#eef2f0"/><text x="'+X(v)+'" y="'+(H-m.b+20)+'" text-anchor="middle" font-size="14" fill="#566669">'+v+'</text>'}
+  s+='<rect x="'+m.l+'" y="'+m.t+'" width="'+pw+'" height="'+ph+'" fill="none" stroke="#1d2b2e" stroke-width="2"/>';
+  s+='<text x="'+(m.l+pw/2)+'" y="'+(H-10)+'" text-anchor="middle" font-size="15" font-weight="700" fill="#1d2b2e">'+o.xl+'</text>';
+  s+='<text transform="translate(16 '+(m.t+ph/2)+') rotate(-90)" text-anchor="middle" font-size="15" font-weight="700" fill="#1d2b2e">'+o.yl+'</text>';
+  (o.hl||[]).forEach(function(h){s+='<line x1="'+m.l+'" x2="'+(W-m.r)+'" y1="'+Y(h.y)+'" y2="'+Y(h.y)+'" stroke="#c23b3b" stroke-width="2" stroke-dasharray="6 5"/><text x="'+(W-m.r-6)+'" y="'+(Y(h.y)-6)+'" text-anchor="end" font-size="13" fill="#c23b3b" font-weight="700">'+h.t+'</text>'});
+  (o.vl||[]).forEach(function(v){var vx=X(v.x),end=vx>W-150;s+='<line x1="'+vx+'" x2="'+vx+'" y1="'+m.t+'" y2="'+(H-m.b)+'" stroke="#ff4fd8" stroke-width="2.5" stroke-dasharray="6 5"/><text x="'+(end?vx-6:vx+6)+'" y="'+(H-m.b-8)+'" text-anchor="'+(end?"end":"start")+'" font-size="13" font-weight="700" fill="#b0239a">'+v.t+'</text>'});
+  (o.series||[]).forEach(function(se){
+    if(se.fn){var d='',n=200;for(i=0;i<=n;i++){var x=o.x0+(o.x1-o.x0)*i/n;d+=(i?'L':'M')+X(x).toFixed(1)+','+Y(clamp(se.fn(x),o.y0,o.y1)).toFixed(1)}
+      s+='<path d="'+d+'" fill="none" stroke="'+se.c+'" stroke-width="4" stroke-linejoin="round"/>'}
+    if(se.pts){se.pts.forEach(function(p){s+='<circle cx="'+X(p.x)+'" cy="'+Y(clamp(p.y,o.y0,o.y1))+'" r="7" fill="'+(p.c||se.c)+'" stroke="#fff" stroke-width="2"/>'})}
+  });
+  var ly=m.t+16;
+  (o.series||[]).forEach(function(se){if(se.n){s+='<rect x="'+(m.l+10)+'" y="'+(ly-11)+'" width="16" height="6" fill="'+se.c+'"/><text x="'+(m.l+32)+'" y="'+(ly-4)+'" font-size="14" font-weight="700" fill="#1d2b2e">'+se.n+'</text>';ly+=20}});
+  if(o.empty){s+='<text x="'+(m.l+pw/2)+'" y="'+(m.t+ph/2)+'" text-anchor="middle" font-size="16" fill="#8a9799">'+o.empty+'</text>'}
+  svg.setAttribute("viewBox","0 0 "+W+" "+H);svg.innerHTML=s;
+}
+function bell(opt,w){return function(x){return 100*Math.exp(-Math.pow((x-opt)/w,2))}}
+function humanT(T){return T<=37?100*Math.pow(T/37,2.2):Math.max(0,100*(1-Math.pow((T-37)/17,1.5)))}
+function hotT(T){return T<=70?100*Math.pow(T/70,2.5):Math.max(0,100*(1-Math.pow((T-70)/22,1.5)))}
+
+/* ---------- simulation engine ---------- */
+function Sim(canvas,cfg){
+  var me=this,ctx=canvas.getContext("2d");
+  me.cfg=cfg;me.W=600;me.H=300;me.enz=[];me.sub=[];me.prods=[];me.fx=[];me.events=[];me.total=0;me.running=!!cfg.auto;me.vis=true;me.wstart=performance.now();
+  me.p={move:1,cat:1,denat:0};
+  me.resize=function(){
+    var w=canvas.parentElement.clientWidth||600,h=Math.max(240,Math.min(380,Math.round(w*0.52))),dpr=window.devicePixelRatio||1;
+    me.W=w;me.H=h;canvas.width=Math.round(w*dpr);canvas.height=Math.round(h*dpr);canvas.style.height=h+"px";ctx.setTransform(dpr,0,0,dpr,0,0);
+    me.enz.concat(me.sub).forEach(function(e){e.x=clamp(e.x,20,w-20);e.y=clamp(e.y,20,h-20)});
+  };
+  function rnd(a,b){return a+Math.random()*(b-a)}
+  function newSub(fade){return{x:rnd(24,me.W-24),y:rnd(24,me.H-24),vx:rnd(-1,1),vy:rnd(-1,1),claimed:false,bound:null,a:fade?0:1}}
+  me.makeEnzymes=function(n){me.enz=[];for(var i=0;i<n;i++)me.enz.push({x:rnd(30,me.W-30),y:rnd(30,me.H-30),vx:0,vy:0,ang:rnd(0,6.28),st:"free",tg:null,t:0,thr:rnd(0.04,1)})};
+  me.reset=function(n){
+    me.makeEnzymes(n||cfg.nEnz);me.sub=[];for(var i=0;i<cfg.nSub;i++)me.sub.push(newSub(false));
+    me.prods=[];me.fx=[];me.events=[];me.total=0;me.wstart=performance.now();
+  };
+  me.resetWindow=function(){me.events=[];me.wstart=performance.now()};
+  me.newEnzymes=function(){
+    me.sub.forEach(function(s){s.claimed=false;s.bound=null});
+    me.makeEnzymes(me.enz.length);me.resetWindow();
+  };
+  me.rate=function(){
+    var now=performance.now(),win=6000,el=now-me.wstart;
+    me.events=me.events.filter(function(t){return now-t<=win});
+    if(el<win)return null;
+    return Math.round(me.events.length*10000/win);
+  };
+  me.leftoverDead=function(){var dn=cfg.params().denat,ex=0,dd=0;me.enz.forEach(function(e){if(e.thr<dn)ex++;if(e.st==="dead")dd++});return dd>ex};
+  me.settleLeft=function(){return Math.max(0,6000-(performance.now()-me.wstart))/1000};
+  me.counts=function(){var d=0;me.enz.forEach(function(e){if(e.st==="dead")d++});return{dead:d,alive:me.enz.length-d}};
+  function releaseTarget(e){if(e.tg){e.tg.claimed=false;if(e.tg.bound===e)e.tg.bound=null;e.tg=null}}
+  me.step=function(dt){
+    var p=cfg.params();me.p=p;var now=performance.now();
+    me.enz.forEach(function(e){
+      if(e.st!=="dead"&&p.denat>e.thr){releaseTarget(e);e.st="dead";me.fx.push({x:e.x,y:e.y-16,t:"💀",a:1.3});if(me.onEvent)me.onEvent("die")}
+      if(e.st==="dead"){
+        if(Math.random()<dt*1.5){e.vx=rnd(-10,10);e.vy=rnd(-10,10)}
+      }else if(e.st==="free"){
+        if(me.running&&!e.tg){
+          var best=null,bd=1e9;
+          me.sub.forEach(function(s){if(!s.claimed&&!s.bound&&s.a>0.6){var d=Math.hypot(s.x-e.x,s.y-e.y);if(d<bd){bd=d;best=s}}});
+          if(best){best.claimed=true;e.tg=best}
+        }
+        if(e.tg){
+          var dx=e.tg.x-e.x,dy=e.tg.y-e.y,d=Math.hypot(dx,dy)||1,v=cfg.seek*p.move;
+          e.vx=dx/d*v;e.vy=dy/d*v;e.ang=Math.atan2(dy,dx);
+          if(d<20){
+            e.st="busy";e.vx=0;e.vy=0;e.tg.bound=e;
+            var eff=Math.max(0.03,p.move*Math.max(p.cat,0.03));
+            e.t=Math.min(30,cfg.handle/eff);
+          }
+        }else{
+          if(Math.random()<dt*1.2){var a=rnd(0,6.28),v2=cfg.seek*0.35*Math.max(p.move,0.05);e.vx=Math.cos(a)*v2;e.vy=Math.sin(a)*v2}
+          if(Math.abs(e.vx)+Math.abs(e.vy)>1)e.ang=Math.atan2(e.vy,e.vx);
+        }
+      }else if(e.st==="busy"){
+        e.t-=dt;
+        if(e.tg){e.tg.x=e.x+Math.cos(e.ang)*13;e.tg.y=e.y+Math.sin(e.ang)*13}
+        if(e.t<=0&&e.tg){
+          var s=e.tg;
+          me.prods.push({x:s.x-8,y:s.y,vx:-22,vy:rnd(-18,-6),a:1,c:"#e8801c"},{x:s.x+8,y:s.y,vx:22,vy:rnd(-18,-6),a:1,c:"#f0b92c"});
+          me.sub.splice(me.sub.indexOf(s),1);
+          if(cfg.respawn)me.sub.push(newSub(true));
+          me.events.push(now);me.total++;me.fx.push({x:s.x,y:s.y-12,t:"+1",a:1});e.tg=null;e.st="free";
+        }
+      }
+      e.x+=e.vx*dt;e.y+=e.vy*dt;
+      if(e.x<18){e.x=18;e.vx=Math.abs(e.vx)}if(e.x>me.W-18){e.x=me.W-18;e.vx=-Math.abs(e.vx)}
+      if(e.y<18){e.y=18;e.vy=Math.abs(e.vy)}if(e.y>me.H-18){e.y=me.H-18;e.vy=-Math.abs(e.vy)}
+    });
+    me.sub.forEach(function(s){
+      if(s.a<1)s.a=Math.min(1,s.a+dt*1.2);
+      if(s.bound)return;
+      if(Math.random()<dt*2){s.vx=rnd(-1,1);s.vy=rnd(-1,1)}
+      var sp=14*(0.25+0.75*Math.min(p.move,1.3));
+      s.x+=s.vx*sp*dt;s.y+=s.vy*sp*dt;
+      if(s.x<12||s.x>me.W-12){s.vx*=-1;s.x=clamp(s.x,12,me.W-12)}
+      if(s.y<12||s.y>me.H-12){s.vy*=-1;s.y=clamp(s.y,12,me.H-12)}
+    });
+    me.prods.forEach(function(q){q.x+=q.vx*dt;q.y+=q.vy*dt;q.a-=dt*0.7});
+    me.prods=me.prods.filter(function(q){return q.a>0});
+    me.fx.forEach(function(f){f.y-=dt*28;f.a-=dt*0.9});me.fx=me.fx.filter(function(f){return f.a>0});
+  };
+  function circle(x,y,r,f,al){ctx.globalAlpha=al==null?1:al;ctx.beginPath();ctx.arc(x,y,r,0,6.2832);ctx.fillStyle=f;ctx.fill();ctx.lineWidth=1.5;ctx.strokeStyle="rgba(60,30,0,.7)";ctx.stroke();ctx.globalAlpha=1}
+  function eyes(e,cat){
+    ctx.save();ctx.translate(e.x,e.y);ctx.lineWidth=2.2;ctx.strokeStyle="#0b2a2b";
+    var a=e.ang,bx=-Math.cos(a)*4,by=-Math.sin(a)*4,px=-Math.sin(a)*5,py=Math.cos(a)*5;
+    [[bx+px,by+py],[bx-px,by-py]].forEach(function(q){
+      var x=q[0],y=q[1];ctx.beginPath();
+      if(e.st==="dead"){ctx.moveTo(x-3,y-3);ctx.lineTo(x+3,y+3);ctx.moveTo(x+3,y-3);ctx.lineTo(x-3,y+3);ctx.stroke()}
+      else if(e.st==="busy"){ctx.arc(x,y+2,3,3.14,6.28);ctx.stroke()}
+      else if(cat<0.45){ctx.moveTo(x-3,y);ctx.lineTo(x+3,y);ctx.stroke()}
+      else{ctx.fillStyle="#fff";ctx.arc(x,y,3.8,0,6.28);ctx.fill();ctx.stroke();ctx.beginPath();ctx.fillStyle="#0b2a2b";ctx.arc(x+Math.cos(a)*1.4,y+Math.sin(a)*1.4,1.6,0,6.28);ctx.fill()}
+    });
+    ctx.restore();
+  }
+  me.draw=function(){
+    var W=me.W,H=me.H;ctx.clearRect(0,0,W,H);
+    var g=ctx.createLinearGradient(0,0,0,H);var tc=cfg.tint?cfg.tint():["#e9f6fb","#cfe8f2"];g.addColorStop(0,tc[0]);g.addColorStop(1,tc[1]);ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+    me.sub.forEach(function(s){
+      ctx.globalAlpha=s.a;ctx.strokeStyle="#8a4a0a";ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(s.x-5,s.y);ctx.lineTo(s.x+5,s.y);ctx.stroke();
+      circle(s.x-5,s.y,5.5,"#e8801c",s.a);circle(s.x+5,s.y,5.5,"#f0b92c",s.a);ctx.globalAlpha=1;
+    });
+    me.prods.forEach(function(q){circle(q.x,q.y,5.5,q.c,clamp(q.a,0,1))});
+    var cat=me.p.cat;
+    me.enz.forEach(function(e){
+      ctx.save();ctx.translate(e.x,e.y);
+      if(e.st==="dead"){
+        ctx.beginPath();for(var i=0;i<12;i++){var a=i/12*6.2832,r=14+((i*7)%5)*1.6;ctx[i?"lineTo":"moveTo"](Math.cos(a)*r,Math.sin(a)*r)}
+        ctx.closePath();ctx.fillStyle="#8a8f98";ctx.fill();ctx.strokeStyle="#5b6068";ctx.lineWidth=2;ctx.stroke();
+      }else{
+        ctx.rotate(e.ang);ctx.beginPath();ctx.moveTo(0,0);ctx.arc(0,0,17,0.62,6.2832-0.62);ctx.closePath();
+        var l=33+(1-clamp(cat,0,1))*38;ctx.fillStyle="hsl(181,"+(85-(1-cat)*35)+"%,"+l+"%)";ctx.fill();
+        ctx.strokeStyle="#075c5e";ctx.lineWidth=2.5;ctx.stroke();
+      }
+      ctx.restore();eyes(e,cat);
+    });
+    me.sub.forEach(function(s){if(s.bound){ctx.globalAlpha=1;ctx.strokeStyle="#8a4a0a";ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(s.x-5,s.y);ctx.lineTo(s.x+5,s.y);ctx.stroke();circle(s.x-5,s.y,5.5,"#e8801c");circle(s.x+5,s.y,5.5,"#f0b92c")}});
+  };
+  var _d=me.draw;
+  me.draw=function(){_d();ctx.textAlign="center";me.fx.forEach(function(f){ctx.globalAlpha=clamp(f.a,0,1);
+    if(f.t==="+1"){ctx.font="800 16px sans-serif";ctx.lineWidth=3;ctx.strokeStyle="#fff";ctx.strokeText(f.t,f.x,f.y);ctx.fillStyle="#d96a00";ctx.fillText(f.t,f.x,f.y)}
+    else{ctx.font="22px sans-serif";ctx.fillText(f.t,f.x,f.y)}});ctx.globalAlpha=1};
+  var last=performance.now();
+  function loop(t){
+    var dt=Math.min(0.05,(t-last)/1000);last=t;
+    if(me.vis){me.step(dt);me.draw();if(me.onFrame)me.onFrame()}
+    requestAnimationFrame(loop);
+  }
+  if("IntersectionObserver" in window){new IntersectionObserver(function(en){me.vis=en[0].isIntersecting;if(me.vis)me.resetWindow()}).observe(canvas)}
+  document.addEventListener("visibilitychange",function(){if(!document.hidden)me.resetWindow()});
+  window.addEventListener("resize",me.resize);
+  me.resize();me.reset(cfg.nEnz);
+  requestAnimationFrame(loop);
+}
+
+/* ---------- best-fit curve + recorder ---------- */
+function fitBell(pts,x0,x1){
+  var ymax=Math.max.apply(null,pts.map(function(p){return p.y}))||1,sg=[],i,best=null,rng=x1-x0;
+  var lo=Math.log(rng*0.03),hi=Math.log(rng*0.7);
+  for(i=0;i<18;i++)sg.push(Math.exp(lo+(hi-lo)*i/17));
+  var sorted=pts.slice().sort(function(a,b){return a.x-b.x}),ti=0;
+  sorted.forEach(function(p,j){if(p.y>sorted[ti].y)ti=j});
+  var top=sorted[ti],gl=ti>0?(top.x-sorted[ti-1].x)/2:0,gr=ti<sorted.length-1?(sorted[ti+1].x-top.x)/2:0;
+  var ma=top.x-gl,mb=top.x+gr;
+  for(var mi=0;mi<=60;mi++){var m=ma+(mb-ma)*mi/60,pen=3*ymax*ymax*Math.pow((m-top.x)/rng,2);
+    for(var a=0;a<18;a++)for(var b=0;b<18;b++)for(var ai=0;ai<=12;ai++){
+      var A=ymax*(0.9+0.05*ai),sse=pen;
+      for(i=0;i<pts.length;i++){var p=pts[i],z=(p.x-m)/(p.x<m?sg[a]:sg[b]),d=A*Math.exp(-z*z)-p.y;sse+=d*d}
+      if(best===null||sse<best.sse)best={sse:sse,m:m,A:A,l:sg[a],r:sg[b]};
+    }}
+  return{peak:best.m,fn:function(x){var z=(x-best.m)/(x<best.m?best.l:best.r);return best.A*Math.exp(-z*z)}};
+}
+function mkOpts(correct,cands,fmt){var out=[fmt(correct)];cands.forEach(function(c){var t=fmt(c);if(out.indexOf(t)<0&&out.length<4)out.push(t)});return out}
+function ownQs(o,pts,fit,edge){
+  var T=o.kind==="t",what=T?"temperature":"pH",fmt=o.fmt,items=[];
+  if(!edge){
+    var r=Math.round(fit.peak/(T?1:0.5))*(T?1:0.5),offs=T?[14,-14,25,-25,8,-8]:[3,-3,5,-5,2,-2,7,-7],c=[];
+    offs.forEach(function(d){var v=r+d;if(v>=o.x0&&v<=o.x1&&Math.abs(v-r)>=(T?8:2))c.push(v)});
+    items.push({q:"What is the <b>optimum "+what+"</b> according to your best-fit curve?",o:mkOpts(r,c,fmt),why:"The peak of your curve is near "+fmt(r)+". That is where your enzyme works fastest."});
+  }else{
+    items.push({q:"Your highest dot is at the very edge of your data. What does that tell you?",o:["The true peak might be beyond my dots, so I should have tested more spread-out values","My enzyme does not have an optimum","The graph is perfect and has no peak","The experiment failed and the enzyme is dead"],why:"A bell curve needs dots on both sides of the peak. With a dot at the edge, the real top could be hiding."});
+  }
+  var ck=pts.filter(function(p){return p.cooked}).sort(function(a,b){return a.x-b.x});
+  if(T){
+    items.push({q:"Your red dot at "+fmt(ck[0].x)+" made "+ck[0].y+" products, lower than your peak. What happened to the enzymes there?",
+      o:["Heat denatured them, so the active site changed shape and the substrate no longer fit","They ran out of substrate","They turned into substrate","They got tired and took a break"],
+      why:"Denatured enzymes cannot bind the substrate, and the change is permanent."});
+  }else{
+    var lo=ck[0],hi=ck[ck.length-1];
+    items.push({q:"Your red dots at "+fmt(lo.x)+" and "+fmt(hi.x)+" made "+lo.y+" and "+hi.y+" products, lower than your peak. What happened to the enzymes?",
+      o:["Both extremes changed the enzyme's shape, so the active site no longer fit the substrate","Only the too-high pH hurt them. Too-low pH makes enzymes stronger","They ran out of substrate","They turned into substrate"],
+      why:"A pH that is too low or too high can denature an enzyme. A denatured active site cannot bind the substrate."});
+  }
+  return items;
+}
+function Recorder(o){
+  var me=this,pts=[],fit=null,fitXP=false,nFree=o.free||4,total=o.must.length+nFree,filled={};
+  for(var q=0;q<2;q++)reg(o.k);
+  o.own.host.innerHTML='<p class="frame">Draw your best-fit curve to unlock these 2 questions about YOUR graph.</p>';
+  function say(t,k){o.msg.className="fb "+(k||"");o.msg.textContent=t}
+  function freeCount(){return pts.filter(function(p){return !p.cooked}).length}
+  me.draw=function(){
+    var ser=[],vl=[];
+    if(fit){ser.push({c:"#ff4fd8",fn:fit.fn,n:"Your best-fit curve"});if(fit.showPeak)vl.push({x:fit.peak,t:"peak: "+o.fmt(fit.peak)})}
+    ser.push({c:"#0d8587",pts:pts});
+    var op=o.chart();op.series=ser;op.vl=vl;op.empty=pts.length?"":"Record your "+total+" dots to build your graph";
+    chart(o.svg,op);
+    var f=freeCount(),h="";
+    o.must.forEach(function(m){h+="<div>"+(filled[m.id]?"✅":"⬜")+" <b>Must do:</b> "+m.label+"</div>"});
+    h+="<div>"+(f>=nFree?"✅":"⬜")+" <b>Your choice:</b> "+"●".repeat(f)+"○".repeat(nFree-f)+" ("+f+" of "+nFree+") dots where the enzymes still work</div>";
+    o.status.innerHTML=h;
+    o.fit.disabled=pts.length<total||!!fit;
+  };
+  me.zone=function(){
+    var hot=o.sim.cfg.params().denat>=0.5;
+    o.zn.className="zone "+(hot?"hot":"ok");
+    o.zn.textContent=hot?"💀 Cooked zone: most enzymes are denatured.":"✅ Enzymes are mostly working here.";
+  };
+  me.tick=function(){
+    var n=pts.length,left=o.sim.settleLeft();
+    o.tf.style.width=(n>=total?100:clamp((6-left)/6*100,0,100))+"%";
+    if(n>=total){o.tt.textContent="✅ All "+total+" dots recorded";o.tm.className="timer ready"}
+    else if(left>0){o.tt.textContent="⏱ "+left.toFixed(1)+" s. Wait for it...";o.tm.className="timer"}
+    else{o.tt.textContent="✅ Reading ready! Record your dot.";o.tm.className="timer ready"}
+    o.rec.disabled=n>=total||left>0;
+  };
+  o.rec.addEventListener("click",function(){
+    if(pts.length>=total)return;
+    var x=+o.input.value,hot=o.sim.cfg.params().denat>=0.5,op=o.opt?o.opt():null,slot=null;
+    if(pts.some(function(p){return p.x===x})){say("You already have a dot at "+o.fmt(x)+". Pick a different "+o.what+".","no");return}
+    if(hot){
+      o.must.forEach(function(m){if(!slot&&!filled[m.id]&&m.test(x,op))slot=m});
+      if(!slot){say(o.must.length>1?"You already have a cooked dot on that side. Cook it on the other side, or move to where the enzymes still work.":"You already cooked it. Now pick a "+o.what+" where the enzymes still work.","no");return}
+    }else{
+      if(freeCount()>=nFree){say("You already used your "+nFree+" dots of your own choice. Finish your must-dos by denaturing the enzyme!","no");return}
+      if(o.sim.leftoverDead()){say("Some enzymes were cooked earlier, so this reading would not be fair. Press Fresh enzymes, wait for the timer, then record.","no");return}
+    }
+    if(o.sim.rate()==null){say("Hold on. The timer is not done yet.","no");return}
+    pts.push({x:x,y:o.sim.rate(),cooked:hot,c:hot?"#c23b3b":null});
+    if(slot)filled[slot.id]=1;
+    fit=null;me.draw();recXP(o.k,o.rec);if(pts.length===1&&o.onFirst)o.onFirst();
+    if(pts.length>=total)say("All "+total+" dots done! Now press Draw line of best fit.","ok");
+    else if(slot)say("Must-do done ✅ "+slot.label+" 💀","ok");
+    else say("Dot "+pts.length+" of "+total+" locked in 📍","ok");
+  });
+  o.fit.addEventListener("click",function(){
+    if(pts.length<total)return;
+    fit=fitBell(pts,o.x0,o.x1);
+    var top=pts.slice().sort(function(a,b){return b.y-a.y})[0],xs=pts.map(function(p){return p.x});
+    var edge=top.x===Math.min.apply(null,xs)||top.x===Math.max.apply(null,xs);
+    if(edge){fit.showPeak=false;say("Your highest dot is at the edge of your data, so the peak could be hiding. A bell curve goes up AND down. This is your graph now, so use it to answer the questions below.","no");sfx.wrong()}
+    else{fit.showPeak=true;say("Best-fit curve drawn. It does not have to touch every dot. It peaks near "+o.fmt(fit.peak)+", which is this enzyme's optimum.","ok");sfx.right();burstAt(o.fit,40);if(!fitXP){fitXP=true;addXP(30,o.fit)}}
+    me.draw();o.fit.textContent="📈 Curve drawn";
+    o.own.host.innerHTML="";renderMC(o.own.host,o.k,ownQs(o,pts,fit,edge),true);
+  });
+  me.draw();me.zone();me.tick();
+}
+
+/* ---------- Part 2: temperature ---------- */
+function tMove(T){return 0.12+0.88*Math.min(T/37,1)+0.15*Math.max(0,(T-37)/20)}
+function tDenat(T){return clamp((T-40)/14,0,1)}
+var sim2=new Sim($("cv2"),{nEnz:8,nSub:20,respawn:true,auto:true,seek:110,handle:1.6,
+  params:function(){var T=+$("tmp").value;return{move:tMove(T),cat:1,denat:tDenat(T)}},
+  tint:function(){var h=Math.round(205-(+$("tmp").value)/70*205);return["hsl("+h+",80%,93%)","hsl("+h+",70%,80%)"]}});
+sim2.onEvent=function(t){if(t==="die")sfx.die()};
+var R2=new Recorder({k:"p2",sim:sim2,input:$("tmp"),rec:$("rec2"),fit:$("fit2"),tm:$("tm2"),tf:$("tf2"),tt:$("tt2"),own:{host:$("own2")},kind:"t",free:4,must:[{id:"hot",label:"Denature it at a HIGH temperature (enzymes turn gray)",test:function(){return true}}],status:$("st2"),msg:$("msg2"),zn:$("zn2"),svg:$("ch2"),what:"temperature",fmt:function(x){return Math.round(x)+" °C"},x0:0,x1:70,
+  chart:function(){return{x0:0,x1:70,xs:10,y0:0,y1:60,ys:10,xl:"Temperature (°C)",yl:"Products made per 10 seconds"}}});
+function draw2(){R2.draw()}
+$("tmp").addEventListener("input",function(){$("tmpO").textContent=this.value+" °C";sim2.resetWindow()});
+$("tmpO").textContent=$("tmp").value+" °C";
+$("new2").addEventListener("click",function(){$("tmp").value=25;$("tmpO").textContent="25 °C";sim2.newEnzymes()});
+sim2.onFrame=(function(){var c=0;return function(){if(++c%10)return;var k=sim2.counts(),r=sim2.rate();$("a2").textContent=k.alive;$("d2").textContent=k.dead;$("r2").textContent=r==null?"measuring...":r;$("ban2").classList.toggle("show",k.dead>0);$("m2").style.width=(r==null?0:clamp(r/40*100,0,100))+"%";if(k.dead>0&&!sim2.warned){sim2.warned=true;toast("RIP 💀 Heat denatured those enzymes. Their shape changed for good.","bad")}if(k.dead===0)sim2.warned=false}})();
+draw2();
+chart($("ref2"),{x0:0,x1:100,xs:10,y0:0,y1:100,ys:25,xl:"Temperature (°C)",yl:"Relative reaction rate (%)",series:[{c:"#0d8587",fn:humanT,n:"Human enzyme"},{c:"#e8801c",fn:hotT,n:"Hot-spring bacteria enzyme"}]});
+renderMC($("qs2"),"p2",[
+ {q:"At about what temperature does the <b>human enzyme</b> work fastest?",o:["37 °C","20 °C","55 °C","70 °C"],why:"The peak of the human curve is at the optimum temperature, about 37 °C (body temperature)."},
+ {q:"On the graph, about how fast is the human enzyme at 20 °C compared with its best rate?",o:["About 25%","About 100%","About 75%","0%"],why:"At 20 °C the curve is only about a quarter of the way up. Cold slows molecules down."},
+ {q:"What happens to the human enzyme's rate above about 45 °C?",o:["It drops quickly because the enzyme is denaturing","It keeps climbing forever","It stays at 100%","It switches to a different reaction"],why:"Heat changes the enzyme's shape. The active site no longer fits the substrate."},
+ {q:"What is the optimum temperature for the hot-spring bacteria enzyme?",o:["About 70 °C","About 37 °C","About 10 °C","About 100 °C"],why:"Its curve peaks near 70 °C, which makes sense for a hot spring."},
+ {q:"Why can the human enzyme not work at 70 °C?",o:["It is denatured, so its active site changed shape","The substrate boils away","There are too few enzymes","The enzyme gets tired"],why:"Denatured enzymes cannot bind the substrate, and the change is permanent."},
+ {q:"A student puts the enzyme in ice water at 2 °C. The rate is almost zero. Is the enzyme denatured?",o:["No. Cold slows the molecules, but the shape is not destroyed","Yes. Cold and heat denature enzymes the same way","Yes. The enzyme froze into a new shape forever","No. Enzymes never change at any temperature"],why:"Cold only slows things down. Warm it up again and it works. Heat denaturing is permanent.",ch:true}
+]);
+
+/* ---------- Part 3: pH ---------- */
+var E3={amy:{opt:7,name:"Amylase"},pep:{opt:2,name:"Pepsin"},try:{opt:8,name:"Trypsin"}};
+function pCat(pH,o){return Math.exp(-Math.pow((pH-o)/1.8,2))}
+function pDenat(pH,o){return clamp((Math.abs(pH-o)-3)/2,0,1)}
+var sim3=new Sim($("cv3"),{nEnz:8,nSub:20,respawn:true,auto:true,seek:110,handle:1.6,
+  params:function(){var pH=+$("ph").value,o=E3[$("enzSel").value].opt;return{move:1,cat:pCat(pH,o),denat:pDenat(pH,o)}},
+  tint:function(){var p=+$("ph").value,h=p<=7?p/7*120:120+(p-7)/7*150;return["hsl("+Math.round(h)+",80%,93%)","hsl("+Math.round(h)+",65%,80%)"]}});
+sim3.onEvent=function(t){if(t==="die")sfx.die()};
+var R3=new Recorder({k:"p3",sim:sim3,input:$("ph"),rec:$("rec3"),fit:$("fit3"),tm:$("tm3"),tf:$("tf3"),tt:$("tt3"),own:{host:$("own3")},kind:"p",free:4,opt:function(){return E3[$("enzSel").value].opt},must:[{id:"lo",label:"Denature it at a pH that is TOO LOW",test:function(x,op){return x<op}},{id:"hi",label:"Denature it at a pH that is TOO HIGH",test:function(x,op){return x>op}}],name:function(){return E3[$("enzSel").value].name},onFirst:function(){$("enzSel").disabled=true;$("lockNote").textContent="Enzyme locked in for your graph."},status:$("st3"),msg:$("msg3"),zn:$("zn3"),svg:$("ch3"),what:"pH",fmt:function(x){return "pH "+(Math.round(x*2)/2)},x0:0,x1:14,
+  chart:function(){return{x0:0,x1:14,xs:2,y0:0,y1:60,ys:10,xl:"pH",yl:"Products made per 10 seconds"}}});
+function draw3(){R3.draw()}
+$("ph").addEventListener("input",function(){$("phO").textContent=this.value;sim3.resetWindow()});
+$("enzSel").addEventListener("change",function(){$("ph").value=5;$("phO").textContent="5";sim3.newEnzymes()});
+$("new3").addEventListener("click",function(){$("ph").value=5;$("phO").textContent="5";sim3.newEnzymes()});
+sim3.onFrame=(function(){var c=0;return function(){if(++c%10)return;var k=sim3.counts(),r=sim3.rate();$("a3").textContent=k.alive;$("d3").textContent=k.dead;$("r3").textContent=r==null?"measuring...":r;$("ban3").classList.toggle("show",k.dead>0);$("m3").style.width=(r==null?0:clamp(r/40*100,0,100))+"%";if(k.dead>0&&!sim3.warned){sim3.warned=true;toast("RIP 💀 That pH wrecked those enzymes. Their shape changed for good.","bad")}if(k.dead===0)sim3.warned=false}})();
+draw3();
+chart($("ref3"),{x0:0,x1:14,xs:1,y0:0,y1:100,ys:25,xl:"pH",yl:"Relative reaction rate (%)",series:[{c:"#c23b3b",fn:bell(2,1.8),n:"Pepsin (stomach)"},{c:"#0d8587",fn:bell(7,1.8),n:"Amylase (mouth)"},{c:"#6a3fb5",fn:bell(8,1.8),n:"Trypsin (small intestine)"}]});
+renderMC($("qs3"),"p3",[
+ {q:"Which enzyme works best in the stomach, where the pH is about 2?",o:["Pepsin","Amylase","Trypsin","All three work equally well"],why:"Pepsin's curve peaks at pH 2. It is built for acid."},
+ {q:"What is the optimum pH of amylase?",o:["About 7","About 2","About 10","About 14"],why:"Amylase peaks near neutral pH, like the inside of your mouth."},
+ {q:"At pH 7, about how fast is pepsin?",o:["Almost 0%","About 50%","About 100%","About 25%"],why:"Pepsin's curve is flat on the floor by pH 7. It is denatured far from its optimum."},
+ {q:"Why do different enzymes have different optimum pH values?",o:["Each enzyme has its own shape, and pH changes that shape","Some enzymes are alive and others are not","The substrate changes color at different pH values","Enzymes are made of different elements than proteins"],why:"Structure determines function. The best pH keeps each enzyme's active site in the right shape."},
+ {q:"Trypsin and amylase curves overlap around pH 7 to 8. What does this tell you?",o:["Both enzymes can work at the same pH, but each is fastest at its own optimum","They are the same enzyme","Trypsin is denatured at pH 7","Amylase works best at pH 8"],why:"The curves overlap, but each peaks at a different pH.",ch:true}
+]);
+
+setInterval(function(){R2.zone();R3.zone();R2.tick();R3.tick()},100);
+
+/* ---------- sentence builders (dropdowns, no typing) ---------- */
+function renderSentence(el,key,cfg){
+  var d=document.createElement("div");d.className="sent";
+  var lb=document.createElement("p");lb.className="lbl";
+  lb.innerHTML=(cfg.pred?'<span class="chal" style="background:#8b6cff">Prediction</span>':'')+cfg.label;
+  var line=document.createElement("div");line.className="line";var sels=[];
+  if(!cfg.pred)reg(key);
+  cfg.s.split(/\[(\d+)\]/).forEach(function(piece,i){
+    if(i%2===0){line.appendChild(document.createTextNode(piece))}
+    else{
+      var n=+piece,sel=document.createElement("select");sel.setAttribute("aria-label","Blank "+(n+1));
+      var ph=document.createElement("option");ph.value="";ph.textContent="choose...";sel.appendChild(ph);
+      shuffle(cfg.b[n].map(function(t,j){return{t:t,j:j}})).forEach(function(o){var op=document.createElement("option");op.value=o.j;op.textContent=o.t;sel.appendChild(op)});
+      sel.addEventListener("change",function(){sel.classList.remove("right","wrong")});
+      sels[n]=sel;line.appendChild(sel);
+    }
+  });
+  var btn=document.createElement("button");btn.type="button";btn.className="btn";btn.textContent=cfg.pred?"🔒 Lock in my prediction":"✅ Check my sentence";
+  var fb=document.createElement("p");fb.className="fb";fb.setAttribute("aria-live","polite");
+  var tries=0,finished=false;
+  d._label=cfg.label;
+  d._text=function(){return cfg.s.replace(/\[(\d+)\]/g,function(m,n){var q=sels[+n];return q.value===""?"____":q.options[q.selectedIndex].textContent})};
+  btn.addEventListener("click",function(){
+    if(finished)return;
+    if(sels.some(function(q){return q.value===""})){fb.className="fb no";fb.textContent="Pick an answer in every box first.";return}
+    if(cfg.pred){
+      finished=true;sels.forEach(function(q){q.disabled=true});btn.disabled=true;
+      fb.className="fb ok";fb.textContent="Locked in. Now go test it in the sim 👇";addXP(20,btn);sfx.blip();return;
+    }
+    tries++;var ok=true;
+    sels.forEach(function(q){q.classList.remove("right","wrong");if(+q.value===0)q.classList.add("right");else{q.classList.add("wrong");ok=false}});
+    if(ok){
+      finished=true;sels.forEach(function(q){q.disabled=true});btn.disabled=true;
+      var pts=tries===1?100:(tries===2?50:25);
+      if(tries===1){streak++;best=Math.max(best,streak);pts+=10*Math.min(streak-1,5)}
+      fb.className="fb ok";fb.textContent=pick(RIGHT)+" +"+pts+" XP. Sentence complete.";sfx.right();burstAt(btn,40);credit(key,btn,pts);
+    }else{
+      fb.className="fb no";fb.textContent=pick(WRONG)+" Fix the red boxes. Use the graph or diagram as evidence.";sfx.wrong();wrongHit();
+    }
+  });
+  d.appendChild(lb);d.appendChild(line);d.appendChild(btn);d.appendChild(fb);el.appendChild(d);
+}
+renderSentence($("sx_o1"),"p1",{label:"Explain: why can the enzyme in the picture only break down this one substrate?",
+  s:"The substrate fits the enzyme's [0] because their [1] match. A different substrate would [2], so the enzyme could not [3].",
+  b:[["active site","nucleus","product"],["shapes","colors","names"],["not fit","fit just as well","turn into the enzyme"],["bind to it","change color","make more enzyme"]]});
+renderSentence($("sx_pr2"),"p2",{pred:true,label:"Lock in a prediction before you play.",
+  s:"I predict that as the temperature goes up, the rate will [0]. If it gets very hot, the rate will [1] because [2].",
+  b:[["speed up at first","slow down right away","not change at all"],["drop","keep going up","stay the same"],["heat changes the enzyme's shape","hot molecules are heavier","enzymes like being cooked"]]});
+renderSentence($("sx_o2"),"p2",{label:"A person has a fever of 41 °C. Is their body temperature a danger to their enzymes? Use the graph as evidence.",
+  s:"Claim: At 41 °C the enzymes are [0]. Evidence: On the graph, the rate at 41 °C is about [1]% of the best rate, and it drops fast above about 45 °C. Reasoning: If the fever kept rising, the enzymes would [2] because heat changes their [3].",
+  b:[["still working, but close to the danger zone","already completely denatured","working better than ever with no risk"],["90","25","0"],["denature","freeze","grow"],["shape","color","name"]]});
+renderSentence($("sx_pr3"),"p3",{pred:true,label:"Lock in a prediction before you play.",
+  s:"I predict that if the pH gets far too low or far too high, the enzyme will [0] because [1].",
+  b:[["stop working","work faster","not change at all"],["extreme pH changes the enzyme's shape","acid and base are food for enzymes","enzymes love extreme conditions"]]});
+renderSentence($("sx_o3"),"p3",{label:"Amylase from your saliva gets swallowed and lands in the stomach. What happens to it? Use the graph as evidence.",
+  s:"Claim: Amylase [0] in the stomach. Evidence: At pH 2 the amylase rate is about [1]% on the graph. Reasoning: Acid changes the [2] of the enzyme, so the [3] no longer fits the substrate.",
+  b:[["stops working","works faster","works the same"],["0","50","100"],["shape","temperature","name"],["active site","nucleus","product"]]});
+renderSentence($("sx_o5"),"fin",{label:"Final boss: explain how temperature and pH each change how fast a reaction happens.",
+  s:"Temperature: the rate is fastest at the [0] temperature and drops when the enzyme [1]. pH: each enzyme has its own [2] pH, and an extreme pH [3] it.",
+  b:[["optimum","coldest","hottest"],["denatures","grows","freezes"],["optimum","random","lowest"],["denatures","feeds","boosts"]]});
+updProg();
+
+/* ---------- toolbar ---------- */
+$("sz").addEventListener("click",function(){var b=document.documentElement.classList.toggle("big");this.setAttribute("aria-pressed",b);this.textContent=b?"Normal text":"Bigger text";window.dispatchEvent(new Event("resize"))});
+$("snd").addEventListener("click",function(){snd=!snd;this.setAttribute("aria-pressed",snd);this.textContent=snd?"🔊 Sound on":"🔇 Sound off";if(snd)sfx.blip()});
+$("nm").addEventListener("change",function(){var v=this.value.trim();if(v)toast("Welcome, "+v+". Let's cook 🧪","")});
+function esc(t){return String(t).replace(/[&<>]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;"}[c]})}
+$("showT").addEventListener("click",function(){
+  var l=lvl(),h='<div class="results"><div class="big">'+esc($("nm").value.trim()||"(no name typed)")+'</div><div>'+l.e+' '+esc(l.n)+'</div>'
+   +'<div class="stats"><div class="stat"><b>'+xp+'</b><span>Total XP</span></div><div class="stat"><b>'+got+' / '+total+'</b><span>Questions correct</span></div><div class="stat"><b>'+best+'</b><span>Best streak</span></div></div>'
+   +'<div class="bdg">'+Object.keys(BADGES).map(function(k){return '<span class="'+(earned[k]?"":"off")+'">'+(earned[k]?BADGES[k][0]+" "+esc(BADGES[k][1]):"🔒 "+esc(BADGES[k][1]))+'</span>'}).join("")+'</div></div>';
+  h+='<h3>My sentences</h3>';
+  document.querySelectorAll(".sent").forEach(function(t){h+='<p><b>'+t._label+'</b><br>'+esc(t._text())+'</p>'});
+  $("tchBody").innerHTML=h;$("tch").hidden=false;sfx.blip();$("tchOk").focus();
+});
+$("tchOk").addEventListener("click",function(){$("tch").hidden=true});
+document.addEventListener("keydown",function(e){if(e.key==="Escape")$("tch").hidden=true});
+})();
+</script>
+</body>
+</html>
